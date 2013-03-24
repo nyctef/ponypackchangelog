@@ -11,7 +11,7 @@ def compare(old:dict, new:dict) -> dict:
             if new[key] == old[key]:
                 result[key] = "<same>"
             else: 
-                result[key] = (old, new)
+                result[key] = (old[key], new[key])
         else:
             result[key] = "<added>"
 
