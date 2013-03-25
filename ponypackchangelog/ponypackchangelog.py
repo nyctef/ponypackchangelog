@@ -1,8 +1,12 @@
 import argparse
 import unittest
 
+def test_module(mod:str):
+    unittest.main(module=mod, exit=False, argv=['ponypackchangelog.py', '-v'])
+
 def run_tests():
-    unittest.main(module='test.compare_test', exit=False, argv=['ponypackchangelog.py', '-v'])
+    test_module('test.compare_test')
+    test_module('test.themefile_test')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Do stuff')
