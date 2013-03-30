@@ -6,7 +6,7 @@ import hashlib
 import ntpath
 import pprint
 import tempfile
-import urllib2
+import urllib.request
 import zipfile
 
 sys.path.append("impl")
@@ -26,6 +26,8 @@ def check_dir(dir:str):
     if (not os.path.isfile(os.path.join(dir, 'theme'))): raise ValueError('theme file not found in directory '+dir)
 
 def run_compare(source_dir:str, target_dir:str):
+    if target_dir is None: target_dir = get_pack()
+
     check_dir(source_dir)
     check_dir(target_dir)
     themediffs = compare.compare(themefile.from_file(os.path.join(source_dir, 'theme')), 
@@ -60,12 +62,19 @@ def extract_pack(zip_file:str, output_dir:str):
         zip.extractall(output_dir)
 
 def download_pack() -> str:
-    response = urllib2.urlopen('http://tinyurl.com/ponypack')
-    filename = tempfile.mktemp + '.zip'
-    local = open(filename, 'w')
+    response = urllib.request.urlopen('http://tinyurl.com/ponypack')
+    filename = tempfile.mktemp() + '.zip'
+    local = open(filename, 'wb')
     local.write(response.read())
     local.close()
     return filename
+
+def get_pack() -> str:
+    target_dir = tempfile.mkdtemp()
+    zip = download_pack()
+    extract_pack(zip, target_dir)
+    # todo: automatic fixup if target_dir only contains a single subdirectory
+    return os.path.join(target_dir, "Super Pony Pack 2013")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Do stuff')
