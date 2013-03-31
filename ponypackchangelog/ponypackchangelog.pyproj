@@ -13,12 +13,12 @@
     <Name>ponypackchangelog</Name>
     <RootNamespace>ponypackchangelog</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"C:\Users\mark\AppData\Roaming\.purple\smileys\Super Pony Pack 2 Turbo Summer Edition"</CommandLineArguments>
+    <CommandLineArguments>"C:\Users\mark\AppData\Roaming\.purple\smileys"</CommandLineArguments>
     <InterpreterPath />
     <InterpreterArguments />
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>9a7a9026-48c1-4688-9d5d-e5699d47d074</InterpreterId>
-    <InterpreterVersion>3.3</InterpreterVersion>
+    <InterpreterVersion>3.1</InterpreterVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
