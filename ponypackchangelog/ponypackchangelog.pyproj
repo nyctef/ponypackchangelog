@@ -13,7 +13,7 @@
     <Name>ponypackchangelog</Name>
     <RootNamespace>ponypackchangelog</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--run-tests</CommandLineArguments>
+    <CommandLineArguments>"C:\Users\mark\AppData\Roaming\.purple\smileys\Super Pony Pack 2 Turbo Summer Edition"</CommandLineArguments>
     <InterpreterPath />
     <InterpreterArguments />
     <IsWindowsApplication>False</IsWindowsApplication>
@@ -30,6 +30,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="impl\compare.py" />
+    <Compile Include="impl\foldermanagement.py" />
     <Compile Include="impl\themefile.py" />
     <Compile Include="ponypackchangelog.py" />
     <Compile Include="test\compare_test.py" />

@@ -2,34 +2,29 @@ import sys
 import argparse
 import unittest
 import os
-import hashlib
-import ntpath
 import pprint
-import tempfile
-import urllib.request
-import zipfile
 
 sys.path.append("impl")
 import compare
 import themefile
+import foldermanagement
+import logging
 
 def test_module(mod:str):
     unittest.main(module=mod, exit=False, argv=['ponypackchangelog.py', '-v'])
 
 def run_tests():
+    logging.debug("running tests")
     test_module('test.compare_test')
     test_module('test.themefile_test')
 
-def check_dir(dir:str):
-    if (dir is None): raise ValueError('source / target directory must be specified')
-    if (not os.path.isdir(dir)): raise NotADirectoryError(dir + ' is not a directory')
-    if (not os.path.isfile(os.path.join(dir, 'theme'))): raise ValueError('theme file not found in directory '+dir)
-
 def run_compare(source_dir:str, target_dir:str):
-    if target_dir is None: target_dir = get_pack()
+    if target_dir is None: target_dir = foldermanagement.get_pack()
+    
+    logging.debug("running comparison between {0} and {1}".format(source_dir, target_dir))
 
-    check_dir(source_dir)
-    check_dir(target_dir)
+    foldermanagement.check_dir(source_dir)
+    foldermanagement.check_dir(target_dir)
     themediffs = compare.compare(themefile.from_file(os.path.join(source_dir, 'theme')), 
                                  themefile.from_file(os.path.join(target_dir, 'theme')))
     themediffs = [(emote,result) for emote,result in themediffs.items() if result != '<same>']
@@ -47,36 +42,12 @@ def pretty_print(results:[(str,str)]):
         if result[1] == '<removed>':
             print('Emote ' + result[0] + ' was removed')
 
-def path_leaf(path):
-    """ http://stackoverflow.com/questions/8384737/python-extract-file-name-from-path-no-matter-what-the-os-path-format """
-    head, tail = ntpath.split(path)
-    return tail or ntpath.basename(head)
 
-def get_file_list(dir:str) -> dict:
-     file_list = [os.path.join(dir, f) for f in os.listdir(dir) if f != 'theme']
-     file_list = [f for f in file_list if os.path.isfile(f)]
-     return dict([(path_leaf(f), hashlib.md5(open(f, 'rb').read()).hexdigest()) for f in file_list])
-
-def extract_pack(zip_file:str, output_dir:str):
-    with zipfile.ZipFile(zip_file, 'r') as zip:
-        zip.extractall(output_dir)
-
-def download_pack() -> str:
-    response = urllib.request.urlopen('http://tinyurl.com/ponypack')
-    filename = tempfile.mktemp() + '.zip'
-    local = open(filename, 'wb')
-    local.write(response.read())
-    local.close()
-    return filename
-
-def get_pack() -> str:
-    target_dir = tempfile.mkdtemp()
-    zip = download_pack()
-    extract_pack(zip, target_dir)
-    # todo: automatic fixup if target_dir only contains a single subdirectory
-    return os.path.join(target_dir, "Super Pony Pack 2013")
 
 if __name__ == '__main__':
+    
+    logging.basicConfig(level=logging.DEBUG)
+
     parser = argparse.ArgumentParser(description='Do stuff')
     parser.add_argument('-t', '--run-tests', action='store_true')
     parser.add_argument('sourcedir', nargs='?', type=str)
