@@ -41,8 +41,14 @@ def get_pack() -> str:
     logging.debug("fetching pack into {0}".format(target_dir))
     zip = download_pack()
     extract_pack(zip, target_dir)
-    # todo: automatic fixup if target_dir only contains a single subdirectory
-    return os.path.join(target_dir, "Super Pony Pack 2013")
+    return descend_into_single_directory(target_dir)
+
+def descend_into_single_directory(path:str) -> str:
+    files = os.listdir(path)
+    if len(files) == 1 and os.path.isdir(os.path.join(path, files[0])):
+        return descend_into_single_directory(os.path.join(path, files[0]))
+    else:
+        return path
 
 def check_dir(dir:str):
     if (dir is None): raise ValueError('source / target directory must be specified')
