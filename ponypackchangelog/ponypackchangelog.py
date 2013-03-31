@@ -56,7 +56,7 @@ def pretty_print(results:[(str,str)], html = False, header = None) -> str:
 
     return result_string
 
-def ponypackchangelog(base_dir:str) :
+def ponypackchangelog(base_dir:str):
     source,target = foldermanagement.fetch_quest(base_dir)
     diffs = run_compare(source, target)
     if len(diffs[0]) == 0: 
