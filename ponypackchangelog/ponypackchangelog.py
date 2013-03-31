@@ -9,6 +9,8 @@ import compare
 import themefile
 import foldermanagement
 import logging
+import logging.handlers
+import queue
 
 def test_module(mod:str):
     unittest.main(module=mod, exit=False, argv=['ponypackchangelog.py', '-v'])
@@ -47,6 +49,8 @@ def pretty_print(results:[(str,str)]):
 if __name__ == '__main__':
     
     logging.basicConfig(level=logging.DEBUG)
+    logq = queue.Queue()
+    logging.getLogger().addHandler(logging.handlers.QueueHandler(logq))
 
     parser = argparse.ArgumentParser(description='Do stuff')
     parser.add_argument('-t', '--run-tests', action='store_true')
