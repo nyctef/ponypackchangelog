@@ -99,5 +99,4 @@ if __name__ == '__main__':
         run_tests()
     else:
         ponypackchangelog(args.basedir)
-    
-    input('Press enter to finish ..')
+
