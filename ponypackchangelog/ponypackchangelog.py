@@ -13,6 +13,7 @@ import logging
 import logging.handlers
 import queue
 import shutil
+import email
 
 def test_module(mod:str):
     unittest.main(module=mod, exit=False, argv=['ponypackchangelog.py', '-v'])
@@ -63,7 +64,7 @@ def ponypackchangelog(base_dir:str):
         logging.debug("No diffs, deleting {0}".format(target))
         shutil.rmtree(target)
         return # no diffs, nothing to do
-    print(pretty_print(diffs[0]))
+    logging.info(pretty_print(diffs[0]))
     prev_html = read_previous_html(base_dir)
     
     htmlf = open(target.rstrip("\\/") + ".html", 'w')
@@ -81,6 +82,13 @@ def read_previous_html(base_dir:str) -> str:
     if prev_file is None: return None
     with open(prev_file, 'r') as hfile:
         return hfile.read()
+
+def email_log(logq:queue):
+    loglist = []
+    while not logq.empty():
+        loglist.append(logq.get_nowait())
+    logstrings = ["{0} [{1}] {2}".format(le.asctime, le.levelname, le.message) for le in log]
+    email.send_email("[ponypackchangelog] ran at {0}".format(datetime.now()), "\n".join(logstrings))
 
 if __name__ == '__main__':
     
@@ -100,3 +108,5 @@ if __name__ == '__main__':
     else:
         ponypackchangelog(args.basedir)
 
+    if os.name != 'nt':
+        email_log(logq)
