@@ -30,7 +30,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="impl\compare.py" />
-    <Compile Include="impl\email.py" />
+    <Compile Include="impl\email_helper.py" />
     <Compile Include="impl\foldermanagement.py" />
     <Compile Include="impl\themefile.py" />
     <Compile Include="ponypackchangelog.py" />
