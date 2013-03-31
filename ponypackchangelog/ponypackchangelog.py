@@ -87,7 +87,7 @@ def email_log(logq:queue):
     loglist = []
     while not logq.empty():
         loglist.append(logq.get_nowait())
-    logstrings = ["{0} [{1}] {2}".format(le.asctime, le.levelname, le.message) for le in log]
+    logstrings = ["{0} [{1}] {2}".format(le.asctime, le.levelname, le.message) for le in loglist]
     email.send_email("[ponypackchangelog] ran at {0}".format(datetime.now()), "\n".join(logstrings))
 
 if __name__ == '__main__':
