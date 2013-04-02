@@ -88,7 +88,7 @@ def email_log(logq:queue):
 
 if __name__ == '__main__':
     
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
     
     logq = queue.Queue()
     if hasattr(logging.handlers, "QueueHandler"):
