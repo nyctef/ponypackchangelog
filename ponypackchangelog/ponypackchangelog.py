@@ -5,15 +5,11 @@ import os
 import pprint
 from datetime import datetime
 
-sys.path.append("impl")
-import compare
-import themefile
-import foldermanagement
+from impl import *
 import logging
 import logging.handlers
 import queue
 import shutil
-import email_helper
 
 def test_module(mod:str):
     unittest.main(module=mod, exit=False, argv=['ponypackchangelog.py', '-v'])
