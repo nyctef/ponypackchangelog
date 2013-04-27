@@ -2,90 +2,107 @@ import sys
 import argparse
 import unittest
 import os
-import hashlib
-import ntpath
 import pprint
-import tempfile
-import urllib.request
-import zipfile
+from datetime import datetime
 
-sys.path.append("impl")
-import compare
-import themefile
+from impl import *
+import logging
+import logging.handlers
+import queue
+import shutil
 
 def test_module(mod:str):
     unittest.main(module=mod, exit=False, argv=['ponypackchangelog.py', '-v'])
 
 def run_tests():
+    logging.debug("running tests")
     test_module('test.compare_test')
     test_module('test.themefile_test')
 
-def check_dir(dir:str):
-    if (dir is None): raise ValueError('source / target directory must be specified')
-    if (not os.path.isdir(dir)): raise NotADirectoryError(dir + ' is not a directory')
-    if (not os.path.isfile(os.path.join(dir, 'theme'))): raise ValueError('theme file not found in directory '+dir)
-
 def run_compare(source_dir:str, target_dir:str):
-    if target_dir is None: target_dir = get_pack()
+    if target_dir is None: target_dir = foldermanagement.get_pack()
+    
+    logging.debug("running comparison between {0} and {1}".format(source_dir, target_dir))
 
-    check_dir(source_dir)
-    check_dir(target_dir)
+    source_dir = foldermanagement.check_dir(source_dir)
+    target_dir = foldermanagement.check_dir(target_dir)
     themediffs = compare.compare(themefile.from_file(os.path.join(source_dir, 'theme')), 
                                  themefile.from_file(os.path.join(target_dir, 'theme')))
     themediffs = [(emote,result) for emote,result in themediffs.items() if result != '<same>']
 
     return (themediffs, None) # todo filediffs
 
-def pretty_print(results:[(str,str)]):
+def pretty_print(results:[(str,str)], html = False, header = None) -> str:
+    result_string = ""
+    
+    if html and header:
+        result_string += "<h2>{0}</h2>\n".format(header)
+
     for result in results:
         if (isinstance(result[1], tuple)):
-            print('Emote ' + result[0] + ' was changed from ' + result[1][0] + ' to ' + result[1][1])
+            result_string += 'Emote ' + result[0] + ' was changed from ' + result[1][0] + ' to ' + result[1][1] + '\n'
         if result[1] == '<same>':
             continue
         if result[1] == '<added>':
-            print('Emote ' + result[0] + ' was added')
+            result_string += 'Emote ' + result[0] + ' was added\n'
         if result[1] == '<removed>':
-            print('Emote ' + result[0] + ' was removed')
+            result_string += 'Emote ' + result[0] + ' was removed\n'
 
-def path_leaf(path):
-    """ http://stackoverflow.com/questions/8384737/python-extract-file-name-from-path-no-matter-what-the-os-path-format """
-    head, tail = ntpath.split(path)
-    return tail or ntpath.basename(head)
+        if html:
+            result_string += "<br />"
 
-def get_file_list(dir:str) -> dict:
-     file_list = [os.path.join(dir, f) for f in os.listdir(dir) if f != 'theme']
-     file_list = [f for f in file_list if os.path.isfile(f)]
-     return dict([(path_leaf(f), hashlib.md5(open(f, 'rb').read()).hexdigest()) for f in file_list])
+    return result_string
 
-def extract_pack(zip_file:str, output_dir:str):
-    with zipfile.ZipFile(zip_file, 'r') as zip:
-        zip.extractall(output_dir)
+def ponypackchangelog(base_dir:str):
+    source,target = foldermanagement.fetch_quest(base_dir)
+    diffs = run_compare(source, target)
+    if len(diffs[0]) == 0: 
+        logging.debug("No diffs, deleting {0}".format(target))
+        shutil.rmtree(target)
+        return # no diffs, nothing to do
+    logging.info(pretty_print(diffs[0]))
+    prev_html = read_previous_html(base_dir)
+    
+    htmlf = open(target.rstrip("\\/") + ".html", 'w')
+    htmlf.write(pretty_print(diffs[0], html=True, header=foldermanagement.folder_name("Pony Pack ", datetime.now())))
+    if prev_html is not None:
+        htmlf.write("\n\n")
+        htmlf.write(prev_html)
+        
+    if hasattr(os, "symlink"):
+        os.symlink(target, "current", target_is_directory=True)
+        os.symlink(htmlf, "default.html", target_is_directory=False)
 
-def download_pack() -> str:
-    response = urllib.request.urlopen('http://tinyurl.com/ponypack')
-    filename = tempfile.mktemp() + '.zip'
-    local = open(filename, 'wb')
-    local.write(response.read())
-    local.close()
-    return filename
+def read_previous_html(base_dir:str) -> str:
+    prev_file = foldermanagement.get_latest_html(base_dir)
+    if prev_file is None: return None
+    with open(prev_file, 'r') as hfile:
+        return hfile.read()
 
-def get_pack() -> str:
-    target_dir = tempfile.mkdtemp()
-    zip = download_pack()
-    extract_pack(zip, target_dir)
-    # todo: automatic fixup if target_dir only contains a single subdirectory
-    return os.path.join(target_dir, "Super Pony Pack 2013")
+def email_log(logq:queue):
+    loglist = []
+    while not logq.empty():
+        loglist.append(logq.get_nowait())
+    logstrings = ["[{0}] {1}".format(le.levelname,le.message) for le in loglist]
+    email_helper.send_email("[ponypackchangelog] ran at {0}".format(datetime.now()), "\n".join(logstrings))
 
 if __name__ == '__main__':
+    
+    logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+    
+    logq = queue.Queue()
+    if hasattr(logging.handlers, "QueueHandler"):
+        logging.getLogger().addHandler(logging.handlers.QueueHandler(logq))
+
     parser = argparse.ArgumentParser(description='Do stuff')
     parser.add_argument('-t', '--run-tests', action='store_true')
-    parser.add_argument('sourcedir', nargs='?', type=str)
-    parser.add_argument('targetdir', nargs='?', type=str)
+    parser.add_argument('basedir', nargs='?', type=str)
     args = parser.parse_args()
 
     if (args.run_tests):
         run_tests()
     else:
-        pretty_print(run_compare(args.sourcedir, args.targetdir)[0])
-    
-    input('Press enter to finish ..')
+        ponypackchangelog(args.basedir)
+
+    if os.name != 'nt':
+        email_log(logq)

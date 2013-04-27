@@ -1,7 +1,6 @@
 import unittest
 import sys
-sys.path.append("impl")
-import themefile
+from impl import themefile
 
 class TestParseLine(unittest.TestCase):
 

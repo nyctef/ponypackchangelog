@@ -18,7 +18,7 @@
     <InterpreterArguments />
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>9a7a9026-48c1-4688-9d5d-e5699d47d074</InterpreterId>
-    <InterpreterVersion>3.3</InterpreterVersion>
+    <InterpreterVersion>3.1</InterpreterVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,7 +30,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="impl\compare.py" />
+    <Compile Include="impl\email_helper.py" />
+    <Compile Include="impl\foldermanagement.py" />
     <Compile Include="impl\themefile.py" />
+    <Compile Include="impl\__init__.py" />
     <Compile Include="ponypackchangelog.py" />
     <Compile Include="test\compare_test.py" />
     <Compile Include="test\themefile_test.py" />

@@ -1,7 +1,6 @@
 import unittest
 import sys
-sys.path.append("impl")
-import compare
+from impl import compare
 
 class TestCompare(unittest.TestCase):
 
