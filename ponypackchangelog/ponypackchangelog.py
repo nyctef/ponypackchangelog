@@ -53,6 +53,12 @@ def pretty_print(results:[(str,str)], html = False, header = None) -> str:
 
     return result_string
 
+def _del(filename):
+    print("deleting "+filename+" ..")
+    if os.path.lexists(filename):
+        os.remove(filename)
+        print(".. done")
+
 def ponypackchangelog(base_dir:str):
     source,target = foldermanagement.fetch_quest(base_dir)
     diffs = run_compare(source, target)
@@ -63,15 +69,22 @@ def ponypackchangelog(base_dir:str):
     logging.info(pretty_print(diffs[0]))
     prev_html = read_previous_html(base_dir)
     
-    htmlf = open(target.rstrip("\\/") + ".html", 'w')
+    htmlfname = target.rstrip("\\/") + ".html"
+    htmlf = open(htmlfname, 'w')
     htmlf.write(pretty_print(diffs[0], html=True, header=foldermanagement.folder_name("Pony Pack ", datetime.now())))
     if prev_html is not None:
         htmlf.write("\n\n")
         htmlf.write(prev_html)
         
     if hasattr(os, "symlink"):
-        os.symlink(target, "current", target_is_directory=True)
-        os.symlink(htmlf, "default.html", target_is_directory=False)
+        cur = os.path.join(base_dir, "current")
+        index = os.path.join(base_dir, "index.html")
+        _del(cur)
+        _del(index)
+        print("link "+target+" to "+cur)
+        os.symlink(target, cur, target_is_directory=True)
+        print("link "+htmlfname+" to "+index)
+        os.symlink(htmlfname, index, target_is_directory=False)
 
 def read_previous_html(base_dir:str) -> str:
     prev_file = foldermanagement.get_latest_html(base_dir)
